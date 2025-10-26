@@ -1,7 +1,7 @@
-# AI Recruiter Application
+# Talent Match Pro - AI Recruiter Application
 
 ## Overview
-An AI-powered web application that analyzes candidate resumes against job descriptions, generates match scores, ranks candidates, and creates personalized phone screening questions using OpenAI's GPT-4o-mini model. Now includes email delivery of analysis results to hiring managers.
+An AI-powered web application that analyzes candidate resumes against job descriptions, generates match scores, ranks candidates, and creates personalized phone screening questions using OpenAI's GPT-4o-mini model. Automatically sends analysis results to hiring managers via email with dual-recipient support.
 
 ## Recent Changes (December 26, 2025)
 - Built complete full-stack AI recruiter application
@@ -17,15 +17,18 @@ An AI-powered web application that analyzes candidate resumes against job descri
 - **FIXED**: JSON parsing issue causing all resumes to score 50
 - **FIXED**: Switched to gpt-4o-mini for 90% cost savings
 - **ADDED**: Enhanced error logging for debugging OpenAI responses
+- **NEW**: Dual-recipient email feature - always sends to default hiring manager (hakansonmez2000@yahoo.com) plus optional second recipient
+- **NEW**: Updated branding to "Talent Match Pro - AI Recruiter"
+- **NEW**: Enhanced UI with custom blue and light green styling on main upload page
 
 ## Project Architecture
 
 ### Frontend
 - **Tech Stack**: React, TypeScript, Tailwind CSS, Shadcn UI components
 - **Key Pages**:
-  - Upload Page: Job URL input, hiring manager email (optional), and resume file upload (up to 5 files)
+  - Upload Page: Job URL input, default email recipient display, optional second recipient email, and resume file upload (up to 5 files)
   - Analysis Page: Real-time progress indicator during AI processing
-  - Results Page: Candidate rankings, scores, categories, screening questions, and email confirmation
+  - Results Page: Candidate rankings, scores, categories, screening questions, and dual-recipient email confirmation
 - **Features**: 
   - Drag-and-drop file upload
   - URL and email validation with visual feedback
@@ -47,10 +50,13 @@ An AI-powered web application that analyzes candidate resumes against job descri
      - 60-79: Backup List
      - <60: Eliminate List
   6. Generates 3 generic + 3 candidate-specific screening questions using gpt-4o-mini
-  7. Sends professional HTML email to hiring manager (if email provided)
+  7. Sends professional HTML email to dual recipients (default + optional second email)
 
 ### Email Integration
-- **Service**: Resend (via Replit connector)
+- **Service**: Resend (via Replit connector, sender: onboarding@resend.dev)
+- **Recipients**: 
+  - Primary (always): hakansonmez2000@yahoo.com
+  - Secondary (optional): User-provided email address
 - **Delivery**: Non-blocking - analysis completes even if email fails
 - **Template**: Professional HTML format with:
   - Summary statistics (total candidates, category counts)
