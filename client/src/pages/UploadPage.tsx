@@ -65,7 +65,8 @@ export default function UploadPage({ onAnalyze }: UploadPageProps) {
             <h2 className="text-3xl font-bold mb-4">Smart Resume Analysis and Recommendations</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Upload candidate resumes and provide the job description URL. Our AI will analyze, 
-              score, and rank candidates, then generate tailored screening questions.
+              score, and rank candidates, then generate tailored screening questions and email the 
+              analysis results automatically to the hiring manager.
             </p>
           </div>
 
