@@ -1,37 +1,24 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { type CandidateResult, type AnalysisResponse } from "@shared/schema";
 
-// modify the interface with any CRUD methods
-// you might need
-
+// Storage interface for candidate analysis results
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  saveAnalysisResult(id: string, result: AnalysisResponse): Promise<void>;
+  getAnalysisResult(id: string): Promise<AnalysisResponse | undefined>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private analysisResults: Map<string, AnalysisResponse>;
 
   constructor() {
-    this.users = new Map();
+    this.analysisResults = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async saveAnalysisResult(id: string, result: AnalysisResponse): Promise<void> {
+    this.analysisResults.set(id, result);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async getAnalysisResult(id: string): Promise<AnalysisResponse | undefined> {
+    return this.analysisResults.get(id);
   }
 }
 
