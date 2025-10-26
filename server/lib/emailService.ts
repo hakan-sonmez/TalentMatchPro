@@ -2,11 +2,18 @@ import { getUncachableResendClient } from './resendClient';
 import type { AnalysisResponse } from '@shared/schema';
 
 export async function sendAnalysisEmail(
-  toEmail: string,
+  secondEmail: string | undefined,
   analysisResults: AnalysisResponse
 ): Promise<boolean> {
   try {
     const { client } = await getUncachableResendClient();
+
+    // Always send to default email, plus optional second email
+    const DEFAULT_EMAIL = 'hakansonmez2000@yahoo.com';
+    const recipients: string[] = [DEFAULT_EMAIL];
+    if (secondEmail && secondEmail.trim()) {
+      recipients.push(secondEmail.trim());
+    }
 
     const { candidates, genericQuestions, specificQuestions, topCandidateName } = analysisResults;
 
@@ -241,11 +248,12 @@ export async function sendAnalysisEmail(
 
     await client.emails.send({
       from: 'onboarding@resend.dev',
-      to: toEmail,
+      to: recipients,
       subject: `Resume Analysis Complete - ${candidates.length} Candidates Reviewed`,
       html: htmlContent,
     });
 
+    console.log(`Email sent to: ${recipients.join(', ')}`);
     return true;
   } catch (error) {
     console.error('Failed to send email:', error);

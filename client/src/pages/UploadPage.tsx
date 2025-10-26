@@ -78,40 +78,58 @@ export default function UploadPage({ onAnalyze }: UploadPageProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="hiring-manager-email" className="text-base font-medium">
-                Hiring Manager Email <span className="text-muted-foreground font-normal">(Optional)</span>
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  id="hiring-manager-email"
-                  type="email"
-                  placeholder="manager@company.com"
-                  value={email}
-                  onChange={handleEmailChange}
-                  onBlur={handleEmailBlur}
-                  className="pl-10 pr-10"
-                  data-testid="input-hiring-manager-email"
-                />
-                {isEmailValid !== null && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {isEmailValid ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" data-testid="icon-email-valid" />
-                    ) : (
-                      <AlertCircle className="w-5 h-5 text-destructive" data-testid="icon-email-invalid" />
-                    )}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Email Recipients</h3>
+                <div className="bg-card border rounded-md p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">Primary Recipient (Default)</p>
+                      <p className="text-sm text-muted-foreground">hakansonmez2000@yahoo.com</p>
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground pl-7">
+                    Analysis results will always be sent to this address
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="hiring-manager-email" className="text-base font-medium">
+                  Second Recipient Email <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="hiring-manager-email"
+                    type="email"
+                    placeholder="second.manager@company.com"
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={handleEmailBlur}
+                    className="pl-10 pr-10"
+                    data-testid="input-second-email"
+                  />
+                  {isEmailValid !== null && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {isEmailValid ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" data-testid="icon-email-valid" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-destructive" data-testid="icon-email-invalid" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Add an additional recipient to receive the analysis results
+                </p>
+                {isEmailValid === false && (
+                  <p className="text-sm text-destructive" data-testid="text-email-error">
+                    Please enter a valid email address
+                  </p>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
-                Analysis results will be sent to this email address
-              </p>
-              {isEmailValid === false && (
-                <p className="text-sm text-destructive" data-testid="text-email-error">
-                  Please enter a valid email address
-                </p>
-              )}
             </div>
 
             <div>

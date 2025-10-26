@@ -42,7 +42,7 @@ export default function ResultsPage({
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold">AI Recruiter</h1>
+            <h1 className="text-xl font-bold">Talent Match Pro - AI Recruiter</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button 
@@ -73,9 +73,15 @@ export default function ResultsPage({
             <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" data-testid="alert-email-sent">
               <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               <AlertDescription className="text-green-800 dark:text-green-200">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span>Analysis results have been sent to the hiring manager's email</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 font-medium">
+                    <Mail className="h-4 w-4" />
+                    <span>Analysis results have been emailed successfully</span>
+                  </div>
+                  <div className="text-sm pl-6">
+                    <p>• Primary recipient: hakansonmez2000@yahoo.com</p>
+                    <p className="text-green-700 dark:text-green-300">Additional recipient(s) included if provided</p>
+                  </div>
                 </div>
               </AlertDescription>
             </Alert>
