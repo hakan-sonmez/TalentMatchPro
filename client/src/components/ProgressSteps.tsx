@@ -25,7 +25,7 @@ export default function ProgressSteps({ currentStep }: ProgressStepsProps) {
           const isLast = index === steps.length - 1;
 
           return (
-            <div key={step.id} className="flex items-center flex-1">
+            <div key={step.id} className="flex items-center flex-1 ml-[20px] mr-[20px] pl-[0px] pr-[0px]">
               <div className="flex flex-col items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center border-2 font-medium transition-colors ${
