@@ -15,9 +15,9 @@ export async function analyzeResumes(
   resumeTexts: { fileName: string; text: string }[],
   jobDescription: string
 ): Promise<AnalysisResponse> {
-  try {
-    // Step 1: Analyze each resume and generate scores
-    const analysisPromises = resumeTexts.map(async (resume) => {
+  // Step 1: Analyze each resume and generate scores
+  const analysisPromises = resumeTexts.map(async (resume) => {
+    try {
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
@@ -25,7 +25,7 @@ export async function analyzeResumes(
             role: 'system',
             content: `You are an expert recruiter analyzing resumes against job descriptions. 
 Your task is to:
-1. Extract the candidate's name from the resume
+1. Extract the candidate's name from the resume (if not found, use "Candidate")
 2. Score the resume from 0-100 based on how well it matches the job requirements
 3. Provide brief reasoning for the score
 
@@ -38,7 +38,7 @@ Return ONLY valid JSON in this exact format:
           },
           {
             role: 'user',
-            content: `Job Description:\n${jobDescription}\n\nResume:\n${resume.text}`,
+            content: `Job Description:\n${jobDescription.slice(0, 5000)}\n\nResume:\n${resume.text.slice(0, 5000)}`,
           },
         ],
         temperature: 0.3,
@@ -49,40 +49,70 @@ Return ONLY valid JSON in this exact format:
         throw new Error('No response from OpenAI');
       }
 
-      const analysis: ResumeAnalysis = JSON.parse(content);
+      // Parse with error handling
+      let analysis: ResumeAnalysis;
+      try {
+        analysis = JSON.parse(content);
+      } catch {
+        // If JSON parsing fails, create a fallback response
+        analysis = {
+          candidateName: 'Candidate',
+          score: 50,
+          reasoning: 'Unable to parse analysis'
+        };
+      }
+
+      // Ensure score is within valid range
+      analysis.score = Math.max(0, Math.min(100, analysis.score));
+      
       return {
         ...analysis,
         fileName: resume.fileName,
       };
-    });
-
-    const analyses = await Promise.all(analysisPromises);
-
-    // Step 2: Sort by score and assign ranks and categories
-    const sortedAnalyses = analyses.sort((a, b) => b.score - a.score);
-
-    const candidates: CandidateResult[] = sortedAnalyses.map((analysis, index) => {
-      let category: 'interview' | 'backup' | 'eliminate';
-      if (analysis.score >= 80) {
-        category = 'interview';
-      } else if (analysis.score >= 60) {
-        category = 'backup';
-      } else {
-        category = 'eliminate';
-      }
-
+    } catch (error) {
+      console.error(`Error analyzing resume ${resume.fileName}:`, error);
+      // Return a fallback analysis for failed resumes
       return {
-        candidateName: analysis.candidateName,
-        fileName: analysis.fileName,
-        score: analysis.score,
-        category,
-        rank: index + 1,
+        candidateName: 'Candidate',
+        fileName: resume.fileName,
+        score: 0,
+        reasoning: 'Analysis failed'
       };
-    });
+    }
+  });
 
-    // Step 3: Generate screening questions
-    const topCandidate = candidates[0];
+  const analyses = await Promise.all(analysisPromises);
 
+  // Step 2: Sort by score and assign ranks and categories
+  const sortedAnalyses = analyses.sort((a, b) => b.score - a.score);
+
+  const candidates: CandidateResult[] = sortedAnalyses.map((analysis, index) => {
+    let category: 'interview' | 'backup' | 'eliminate';
+    if (analysis.score >= 80) {
+      category = 'interview';
+    } else if (analysis.score >= 60) {
+      category = 'backup';
+    } else {
+      category = 'eliminate';
+    }
+
+    return {
+      candidateName: analysis.candidateName,
+      fileName: analysis.fileName,
+      score: analysis.score,
+      category,
+      rank: index + 1,
+    };
+  });
+
+  // Step 3: Generate screening questions
+  const topCandidate = candidates[0];
+  const topResumeText = resumeTexts.find(r => r.fileName === topCandidate.fileName)?.text || '';
+
+  let genericQuestions: string[] = [];
+  let specificQuestions: string[] = [];
+
+  try {
     const questionsResponse = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -101,30 +131,48 @@ Return ONLY valid JSON in this exact format:
         },
         {
           role: 'user',
-          content: `Job Description:\n${jobDescription}\n\nTop Candidate: ${topCandidate.candidateName}\nTop Candidate Resume:\n${resumeTexts.find(r => r.fileName === topCandidate.fileName)?.text}`,
+          content: `Job Description:\n${jobDescription.slice(0, 5000)}\n\nTop Candidate: ${topCandidate.candidateName}\nTop Candidate Resume:\n${topResumeText.slice(0, 5000)}`,
         },
       ],
       temperature: 0.7,
     });
 
     const questionsContent = questionsResponse.choices[0].message.content;
-    if (!questionsContent) {
-      throw new Error('No questions response from OpenAI');
+    if (questionsContent) {
+      try {
+        const questions = JSON.parse(questionsContent);
+        
+        // Extract questions with flexible validation
+        if (Array.isArray(questions.genericQuestions)) {
+          genericQuestions = questions.genericQuestions.slice(0, 3);
+        }
+        if (Array.isArray(questions.specificQuestions)) {
+          specificQuestions = questions.specificQuestions.slice(0, 3);
+        }
+      } catch (error) {
+        console.error('Failed to parse questions JSON:', error);
+      }
     }
-
-    const questions: {
-      genericQuestions: string[];
-      specificQuestions: string[];
-    } = JSON.parse(questionsContent);
-
-    return {
-      candidates,
-      genericQuestions: questions.genericQuestions,
-      specificQuestions: questions.specificQuestions,
-      topCandidateName: topCandidate.candidateName,
-    };
   } catch (error) {
-    console.error('Error analyzing resumes:', error);
-    throw new Error(`Failed to analyze resumes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Error generating screening questions:', error);
   }
+
+  // Ensure we always have 3 questions of each type
+  while (genericQuestions.length < 3) {
+    genericQuestions.push(`Tell me about your experience relevant to this role.`);
+  }
+  while (specificQuestions.length < 3) {
+    specificQuestions.push(`Can you elaborate on your background mentioned in your resume?`);
+  }
+
+  // Ensure exactly 3 questions of each type
+  genericQuestions = genericQuestions.slice(0, 3);
+  specificQuestions = specificQuestions.slice(0, 3);
+
+  return {
+    candidates,
+    genericQuestions,
+    specificQuestions,
+    topCandidateName: topCandidate.candidateName,
+  };
 }

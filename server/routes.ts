@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
+import { ZodError } from "zod";
 import { storage } from "./storage";
 import { analysisRequestSchema, analysisResponseSchema } from "@shared/schema";
 import { extractTextFromFile } from "./lib/fileParser";
@@ -33,48 +34,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/analyze', upload.array('resumes', 5), async (req, res) => {
     try {
       // Validate request body
-      const { jobUrl } = analysisRequestSchema.parse(req.body);
+      let jobUrl: string;
+      try {
+        const parsed = analysisRequestSchema.parse(req.body);
+        jobUrl = parsed.jobUrl;
+      } catch (error) {
+        if (error instanceof ZodError) {
+          return res.status(400).json({ 
+            error: 'Invalid request',
+            message: 'Job URL is required and must be a valid URL',
+            details: error.errors 
+          });
+        }
+        throw error;
+      }
       
       // Ensure files were uploaded
       const files = req.files as Express.Multer.File[];
       if (!files || files.length === 0) {
-        return res.status(400).json({ error: 'No resume files uploaded' });
+        return res.status(400).json({ 
+          error: 'No resume files uploaded',
+          message: 'Please upload at least one resume file' 
+        });
       }
 
       if (files.length > 5) {
-        return res.status(400).json({ error: 'Maximum 5 resumes allowed' });
+        return res.status(400).json({ 
+          error: 'Too many files',
+          message: 'Maximum 5 resumes allowed' 
+        });
       }
 
       // Step 1: Fetch job description from URL
-      const jobDescription = await fetchJobDescription(jobUrl);
+      let jobDescription: string;
+      try {
+        jobDescription = await fetchJobDescription(jobUrl);
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Failed to fetch job description',
+          message: error instanceof Error ? error.message : 'Could not retrieve content from the provided URL'
+        });
+      }
 
       // Step 2: Extract text from all resume files
-      const resumeTexts = await Promise.all(
-        files.map(async (file) => ({
-          fileName: file.originalname,
-          text: await extractTextFromFile(file.buffer, file.mimetype),
-        }))
-      );
+      let resumeTexts: { fileName: string; text: string }[];
+      try {
+        resumeTexts = await Promise.all(
+          files.map(async (file) => ({
+            fileName: file.originalname,
+            text: await extractTextFromFile(file.buffer, file.mimetype),
+          }))
+        );
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Failed to parse resume files',
+          message: error instanceof Error ? error.message : 'Could not extract text from one or more resume files'
+        });
+      }
 
       // Step 3: Analyze resumes using OpenAI
-      const analysisResult = await analyzeResumes(resumeTexts, jobDescription);
-
-      // Validate response
-      const validatedResult = analysisResponseSchema.parse(analysisResult);
-
-      // Return the analysis results
-      res.json(validatedResult);
-    } catch (error) {
-      console.error('Error analyzing resumes:', error);
-      
-      if (error instanceof Error) {
-        res.status(500).json({ 
-          error: 'Failed to analyze resumes',
-          message: error.message 
+      let analysisResult;
+      try {
+        analysisResult = await analyzeResumes(resumeTexts, jobDescription);
+      } catch (error) {
+        console.error('OpenAI analysis error:', error);
+        return res.status(500).json({
+          error: 'AI analysis failed',
+          message: 'Failed to analyze resumes. Please try again.'
         });
-      } else {
-        res.status(500).json({ error: 'Failed to analyze resumes' });
       }
+
+      // Validate response (relaxed validation)
+      try {
+        const validatedResult = analysisResponseSchema.parse(analysisResult);
+        res.json(validatedResult);
+      } catch (error) {
+        // If validation fails, return partial results with warning
+        console.warn('Analysis result validation failed, returning partial results:', error);
+        res.json(analysisResult);
+      }
+    } catch (error) {
+      console.error('Unexpected error analyzing resumes:', error);
+      
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: 'An unexpected error occurred. Please try again.' 
+      });
     }
   });
 

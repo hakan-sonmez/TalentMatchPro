@@ -18,11 +18,11 @@ export const analysisRequestSchema = z.object({
 
 export type AnalysisRequest = z.infer<typeof analysisRequestSchema>;
 
-// Analysis response schema
+// Analysis response schema - relaxed validation
 export const analysisResponseSchema = z.object({
   candidates: z.array(candidateResultSchema),
-  genericQuestions: z.array(z.string()).length(3),
-  specificQuestions: z.array(z.string()).length(3),
+  genericQuestions: z.array(z.string()).min(1).max(3),
+  specificQuestions: z.array(z.string()).min(1).max(3),
   topCandidateName: z.string(),
 });
 
