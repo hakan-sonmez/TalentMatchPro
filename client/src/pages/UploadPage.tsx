@@ -57,7 +57,7 @@ export default function UploadPage({ onAnalyze }: UploadPageProps) {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-12">
+      <main className="container mx-auto px-6 py-12 text-left text-[#143dc4] bg-[#9deb4438]">
         <ProgressSteps currentStep="upload" />
 
         <div className="max-w-4xl mx-auto space-y-8">
