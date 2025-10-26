@@ -6,7 +6,7 @@ export async function sendAnalysisEmail(
   analysisResults: AnalysisResponse
 ): Promise<boolean> {
   try {
-    const { client, fromEmail } = await getUncachableResendClient();
+    const { client } = await getUncachableResendClient();
 
     const { candidates, genericQuestions, specificQuestions, topCandidateName } = analysisResults;
 
@@ -240,7 +240,7 @@ export async function sendAnalysisEmail(
     `;
 
     await client.emails.send({
-      from: fromEmail,
+      from: 'onboarding@resend.dev',
       to: toEmail,
       subject: `Resume Analysis Complete - ${candidates.length} Candidates Reviewed`,
       html: htmlContent,
