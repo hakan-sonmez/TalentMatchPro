@@ -14,6 +14,7 @@ export type CandidateResult = z.infer<typeof candidateResultSchema>;
 // Analysis request schema
 export const analysisRequestSchema = z.object({
   jobUrl: z.string().url(),
+  hiringManagerEmail: z.string().email().optional(),
 });
 
 export type AnalysisRequest = z.infer<typeof analysisRequestSchema>;
@@ -24,6 +25,7 @@ export const analysisResponseSchema = z.object({
   genericQuestions: z.array(z.string()).min(1).max(3),
   specificQuestions: z.array(z.string()).min(1).max(3),
   topCandidateName: z.string(),
+  emailSent: z.boolean().optional(),
 });
 
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;
