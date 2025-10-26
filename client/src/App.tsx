@@ -18,8 +18,8 @@ function AppContent() {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResponse | null>(null);
   const { toast } = useToast();
 
-  const handleAnalyze = async (files: File[], jobUrl: string) => {
-    console.log('Starting analysis with files:', files, 'Job URL:', jobUrl);
+  const handleAnalyze = async (files: File[], jobUrl: string, hiringManagerEmail?: string) => {
+    console.log('Starting analysis with files:', files, 'Job URL:', jobUrl, 'Email:', hiringManagerEmail);
     setAppState('analysis');
     setProgress(0);
     
@@ -58,6 +58,9 @@ function AppContent() {
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('jobUrl', jobUrl);
+      if (hiringManagerEmail) {
+        formData.append('hiringManagerEmail', hiringManagerEmail);
+      }
       files.forEach((file) => {
         formData.append('resumes', file);
       });
@@ -119,6 +122,7 @@ function AppContent() {
           genericQuestions={analysisResults.genericQuestions}
           specificQuestions={analysisResults.specificQuestions}
           topCandidateName={analysisResults.topCandidateName}
+          emailSent={analysisResults.emailSent}
           onStartNew={handleStartNew}
         />
       )}

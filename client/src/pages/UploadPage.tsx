@@ -1,25 +1,47 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import UploadZone from '@/components/UploadZone';
 import JobUrlInput from '@/components/JobUrlInput';
 import ProgressSteps from '@/components/ProgressSteps';
 import ThemeToggle from '@/components/ThemeToggle';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface UploadPageProps {
-  onAnalyze: (files: File[], jobUrl: string) => void;
+  onAnalyze: (files: File[], jobUrl: string, hiringManagerEmail?: string) => void;
 }
 
 export default function UploadPage({ onAnalyze }: UploadPageProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [jobUrl, setJobUrl] = useState('');
   const [isUrlValid, setIsUrlValid] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState<boolean | null>(null);
+
+  const validateEmail = (value: string) => {
+    if (!value) {
+      setIsEmailValid(null);
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setIsEmailValid(emailRegex.test(value));
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+  };
+
+  const handleEmailBlur = () => {
+    validateEmail(email);
+  };
 
   const canAnalyze = files.length > 0 && files.length <= 5 && jobUrl && isUrlValid;
 
   const handleAnalyze = () => {
     if (canAnalyze) {
-      onAnalyze(files, jobUrl);
+      onAnalyze(files, jobUrl, email || undefined);
     }
   };
 
@@ -53,6 +75,42 @@ export default function UploadPage({ onAnalyze }: UploadPageProps) {
                 onUrlChange={setJobUrl}
                 onValidate={setIsUrlValid}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="hiring-manager-email" className="text-base font-medium">
+                Hiring Manager Email <span className="text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="hiring-manager-email"
+                  type="email"
+                  placeholder="manager@company.com"
+                  value={email}
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  className="pl-10 pr-10"
+                  data-testid="input-hiring-manager-email"
+                />
+                {isEmailValid !== null && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {isEmailValid ? (
+                      <CheckCircle className="w-5 h-5 text-green-600" data-testid="icon-email-valid" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-destructive" data-testid="icon-email-invalid" />
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Analysis results will be sent to this email address
+              </p>
+              {isEmailValid === false && (
+                <p className="text-sm text-destructive" data-testid="text-email-error">
+                  Please enter a valid email address
+                </p>
+              )}
             </div>
 
             <div>
