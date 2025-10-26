@@ -11,9 +11,12 @@ An AI-powered web application that analyzes candidate resumes against job descri
 - Implemented proper error handling with 400/500 status codes
 - Created responsive frontend with Material Design principles
 - Added dark mode support with theme toggle
-- **NEW**: Integrated Resend for automated email delivery of analysis results
-- **NEW**: Added hiring manager email input with validation
-- **NEW**: Professional HTML email template with candidate rankings and screening questions
+- Integrated Resend for automated email delivery of analysis results
+- Added hiring manager email input with validation
+- Professional HTML email template with candidate rankings and screening questions
+- **FIXED**: JSON parsing issue causing all resumes to score 50
+- **FIXED**: Switched to gpt-4o-mini for 90% cost savings
+- **ADDED**: Enhanced error logging for debugging OpenAI responses
 
 ## Project Architecture
 
@@ -31,19 +34,19 @@ An AI-powered web application that analyzes candidate resumes against job descri
   - Responsive design for all screen sizes
 
 ### Backend
-- **Tech Stack**: Express.js, TypeScript, Multer, OpenAI SDK, Resend
+- **Tech Stack**: Express.js, TypeScript, Multer, OpenAI SDK (gpt-4o-mini), Resend
 - **API Endpoints**:
   - `POST /api/analyze`: Main analysis endpoint accepting job URL, optional hiring manager email, and resume files
 - **Processing Pipeline**:
   1. Validates job URL (prevents SSRF attacks)
   2. Fetches job description with 10-second timeout
   3. Extracts text from PDF/DOCX resume files
-  4. Calls OpenAI to analyze each resume (score 0-100)
+  4. Calls OpenAI gpt-4o-mini to analyze each resume (score 0-100)
   5. Ranks candidates and categorizes:
      - 80+: Interview List
      - 60-79: Backup List
      - <60: Eliminate List
-  6. Generates 3 generic + 3 candidate-specific screening questions
+  6. Generates 3 generic + 3 candidate-specific screening questions using gpt-4o-mini
   7. Sends professional HTML email to hiring manager (if email provided)
 
 ### Email Integration
