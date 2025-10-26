@@ -85,7 +85,7 @@ export default function UploadPage({ onAnalyze }: UploadPageProps) {
                   <div className="flex items-center gap-2">
                     <Mail className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="text-sm font-medium">Primary Recipient (Default)</p>
+                      <p className="text-sm font-medium">Hiring Manager - Primary Recipient (Default)</p>
                       <p className="text-sm text-muted-foreground">hakansonmez2000@yahoo.com</p>
                     </div>
                   </div>
