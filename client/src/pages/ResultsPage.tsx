@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import ScoreCard, { type CategoryType } from '@/components/ScoreCard';
 import ScreeningQuestions from '@/components/ScreeningQuestions';
 import ResultsSummary from '@/components/ResultsSummary';
 import ProgressSteps from '@/components/ProgressSteps';
 import ThemeToggle from '@/components/ThemeToggle';
-import { Sparkles, RotateCcw } from 'lucide-react';
+import { Sparkles, RotateCcw, Mail, CheckCircle2 } from 'lucide-react';
 
 export interface CandidateResult {
   candidateName: string;
@@ -19,6 +20,7 @@ interface ResultsPageProps {
   genericQuestions: string[];
   specificQuestions: string[];
   topCandidateName: string;
+  emailSent?: boolean;
   onStartNew: () => void;
 }
 
@@ -27,6 +29,7 @@ export default function ResultsPage({
   genericQuestions, 
   specificQuestions,
   topCandidateName,
+  emailSent,
   onStartNew 
 }: ResultsPageProps) {
   const interviewCount = candidates.filter(c => c.category === 'interview').length;
@@ -65,6 +68,18 @@ export default function ResultsPage({
               {candidates.length} candidates analyzed and ranked
             </p>
           </div>
+
+          {emailSent && (
+            <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" data-testid="alert-email-sent">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription className="text-green-800 dark:text-green-200">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>Analysis results have been sent to the hiring manager's email</span>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <ResultsSummary
             totalCandidates={candidates.length}
