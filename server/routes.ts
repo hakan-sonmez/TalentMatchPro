@@ -7,6 +7,7 @@ import { analysisRequestSchema, analysisResponseSchema } from "@shared/schema";
 import { extractTextFromFile } from "./lib/fileParser";
 import { fetchJobDescription } from "./lib/webScraper";
 import { analyzeResumes } from "./lib/analyzer";
+import { sendAnalysisEmail } from "./lib/emailService";
 
 // Configure multer for file uploads (in-memory storage)
 const upload = multer({
@@ -35,9 +36,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Validate request body
       let jobUrl: string;
+      let hiringManagerEmail: string | undefined;
       try {
         const parsed = analysisRequestSchema.parse(req.body);
         jobUrl = parsed.jobUrl;
+        hiringManagerEmail = parsed.hiringManagerEmail;
       } catch (error) {
         if (error instanceof ZodError) {
           return res.status(400).json({ 
@@ -104,14 +107,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Step 4: Send email if hiring manager email provided
+      let emailSent = false;
+      if (hiringManagerEmail) {
+        try {
+          emailSent = await sendAnalysisEmail(hiringManagerEmail, analysisResult);
+          console.log(`Email sent to ${hiringManagerEmail}: ${emailSent}`);
+        } catch (error) {
+          console.error('Failed to send email:', error);
+        }
+      }
+
+      // Add emailSent flag to response
+      const finalResult = {
+        ...analysisResult,
+        emailSent,
+      };
+
       // Validate response (relaxed validation)
       try {
-        const validatedResult = analysisResponseSchema.parse(analysisResult);
+        const validatedResult = analysisResponseSchema.parse(finalResult);
         res.json(validatedResult);
       } catch (error) {
         // If validation fails, return partial results with warning
         console.warn('Analysis result validation failed, returning partial results:', error);
-        res.json(analysisResult);
+        res.json(finalResult);
       }
     } catch (error) {
       console.error('Unexpected error analyzing resumes:', error);

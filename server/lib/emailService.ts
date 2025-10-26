@@ -152,7 +152,7 @@ export async function sendAnalysisEmail(
 </head>
 <body>
   <div class="email-container">
-    <h1>🎯 Resume Analysis Results</h1>
+    <h1>Resume Analysis Results</h1>
     <p>Your AI-powered candidate analysis is complete. Here are the results:</p>
     
     <div class="summary">
@@ -174,7 +174,7 @@ export async function sendAnalysisEmail(
       </div>
     </div>
 
-    <h2>📋 Interview List (Score: 80+)</h2>
+    <h2>Interview List (Score: 80+)</h2>
     ${interviewList.length > 0 ? interviewList.map(c => `
       <div class="candidate-card">
         <div class="candidate-header">
@@ -189,7 +189,7 @@ export async function sendAnalysisEmail(
       </div>
     `).join('') : '<p style="color: #6b7280;">No candidates in this category</p>'}
 
-    <h2>📌 Backup List (Score: 60-79)</h2>
+    <h2>Backup List (Score: 60-79)</h2>
     ${backupList.length > 0 ? backupList.map(c => `
       <div class="candidate-card">
         <div class="candidate-header">
@@ -204,7 +204,7 @@ export async function sendAnalysisEmail(
       </div>
     `).join('') : '<p style="color: #6b7280;">No candidates in this category</p>'}
 
-    <h2>❌ Eliminate List (Score: <60)</h2>
+    <h2>Eliminate List (Score: Below 60)</h2>
     ${eliminateList.length > 0 ? eliminateList.map(c => `
       <div class="candidate-card">
         <div class="candidate-header">
@@ -219,7 +219,7 @@ export async function sendAnalysisEmail(
       </div>
     `).join('') : '<p style="color: #6b7280;">No candidates in this category</p>'}
 
-    <h2>❓ Phone Screening Questions</h2>
+    <h2>Phone Screening Questions</h2>
     
     <h3>Generic Questions (All Candidates)</h3>
     <ul class="question-list">
