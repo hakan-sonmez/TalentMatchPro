@@ -19,7 +19,7 @@ export async function analyzeResumes(
   const analysisPromises = resumeTexts.map(async (resume) => {
     try {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -29,7 +29,7 @@ Your task is to:
 2. Score the resume from 0-100 based on how well it matches the job requirements
 3. Provide brief reasoning for the score
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in this exact format (no markdown, no code blocks):
 {
   "candidateName": "Full Name",
   "score": 85,
@@ -49,11 +49,21 @@ Return ONLY valid JSON in this exact format:
         throw new Error('No response from OpenAI');
       }
 
-      // Parse with error handling
+      console.log(`OpenAI response for ${resume.fileName}:`, content.substring(0, 200));
+
+      // Parse with error handling and markdown stripping
       let analysis: ResumeAnalysis;
       try {
-        analysis = JSON.parse(content);
-      } catch {
+        // Strip markdown code blocks if present
+        let cleanContent = content.trim();
+        if (cleanContent.startsWith('```')) {
+          cleanContent = cleanContent.replace(/^```json?\n?/i, '').replace(/\n?```$/, '');
+        }
+        
+        analysis = JSON.parse(cleanContent);
+      } catch (error) {
+        console.error(`JSON parse error for ${resume.fileName}:`, error);
+        console.error('Raw content:', content);
         // If JSON parsing fails, create a fallback response
         analysis = {
           candidateName: 'Candidate',
