@@ -51,7 +51,7 @@ export default function UploadPage({ onAnalyze }: UploadPageProps) {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold">AI Recruiter</h1>
+            <h1 className="text-xl font-bold">Talent Match Pro - AI Recruiter</h1>
           </div>
           <ThemeToggle />
         </div>
