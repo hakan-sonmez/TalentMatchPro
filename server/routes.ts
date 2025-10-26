@@ -107,15 +107,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Step 4: Send email if hiring manager email provided
+      // Step 4: Send email (always to default recipient, optionally to second recipient)
       let emailSent = false;
-      if (hiringManagerEmail) {
-        try {
-          emailSent = await sendAnalysisEmail(hiringManagerEmail, analysisResult);
-          console.log(`Email sent to ${hiringManagerEmail}: ${emailSent}`);
-        } catch (error) {
-          console.error('Failed to send email:', error);
-        }
+      try {
+        emailSent = await sendAnalysisEmail(hiringManagerEmail, analysisResult);
+        console.log(`Email sent successfully: ${emailSent}`);
+      } catch (error) {
+        console.error('Failed to send email:', error);
       }
 
       // Add emailSent flag to response
